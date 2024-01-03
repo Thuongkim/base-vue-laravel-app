@@ -1,7 +1,7 @@
-<template lang="">
-    <div>Home page</div>
+<script setup></script>
+
+<template>
+    <router-view />
 </template>
-<script>
-export default {};
-</script>
-<style lang=""></style>
+
+<style scoped></style>
