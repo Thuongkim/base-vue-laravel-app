@@ -1,7 +1,16 @@
-<template lang="">
-    <div>Home page</div>
+<template>
+  <component :is="layout"><router-view></router-view></component>
 </template>
 <script>
-export default {};
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { DEFAULT_LAYOUT } from "@/constants";
+export default {
+  setup() {
+    const route = useRoute();
+    return {
+      layout: computed(() => (route.meta.layout || DEFAULT_LAYOUT) + "-layout"),
+    };
+  },
+};
 </script>
-<style lang=""></style>
