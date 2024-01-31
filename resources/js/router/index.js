@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import store from "../store";
 
 const routes = [
     {
@@ -8,6 +9,7 @@ const routes = [
         name: "login",
         meta: {
             layout: "auth",
+            middleware: "guest",
         },
     },
     {
@@ -17,10 +19,11 @@ const routes = [
         name: "register",
         meta: {
             layout: "auth",
+            middleware: "guest",
         },
     },
     {
-        path: "/home",
+        path: "/",
         component: () =>
             import(/* webpackChunkName: "login" */ "@/pages/home.vue"),
         name: "home",
@@ -28,9 +31,28 @@ const routes = [
             layout: "default",
         },
     },
+    {
+        path: "/:pathMatch(.*)*",
+        name: "NotFound",
+        component: () =>
+            import(/* webpackChunkName: "login" */ "@/pages/not_found.vue"),
+    },
 ];
 const router = createRouter({
     history: createWebHistory(),
     routes,
+});
+router.beforeEach((to, from, next) => {
+    if (to.meta.middleware === "guest") {
+        if (store.state.auth.authenticated) {
+            next({ name: "home" });
+        }
+        next();
+    } else {
+        if (!store.state.auth.authenticated) {
+            next({ name: "login" });
+        }
+        next();
+    }
 });
 export default router;
