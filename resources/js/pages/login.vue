@@ -35,7 +35,7 @@
                         />
                     </label>
                 </div>
-                <div class="row text-center">
+                <div class="row text-center justify-center">
                     <button
                         type="submit"
                         class="py-3 text-center w-1/6 bg-primary text-white rounded-lg font-bold"

@@ -84,7 +84,7 @@
                         >
                     </label>
                 </div>
-                <div class="row text-center">
+                <div class="row text-center justify-center">
                     <button
                         type="submit"
                         class="py-3 text-center bg-primary text-white rounded-lg font-bold w-1/6"

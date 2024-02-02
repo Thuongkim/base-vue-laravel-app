@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import store from "../store";
+import admin from "./admin";
 
 const routes = [
     {
@@ -38,6 +39,7 @@ const routes = [
             import(/* webpackChunkName: "login" */ "@/pages/not_found.vue"),
     },
 ];
+routes.push(...admin);
 const router = createRouter({
     history: createWebHistory(),
     routes,

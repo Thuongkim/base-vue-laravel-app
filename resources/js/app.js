@@ -1,4 +1,8 @@
 import "./bootstrap";
+import "bootstrap/dist/css/bootstrap-grid.min.css";
+import "bootstrap/dist/css/bootstrap-utilities.min.css";
+import { Button, Drawer, List, Menu, message } from "ant-design-vue";
+import "ant-design-vue/dist/reset.css";
 import "../css/app.css";
 import "../css/global.css";
 import Router from "@/router";
@@ -11,4 +15,9 @@ const app = createApp(App);
 registerGlobalComponents(app);
 app.use(Router);
 app.use(store);
+app.use(Button);
+app.use(Drawer);
+app.use(List);
+app.use(Menu);
 app.mount("#app");
+app.config.globalProperties.$message = message;
