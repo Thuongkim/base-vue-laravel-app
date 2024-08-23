@@ -11,7 +11,72 @@ use Illuminate\Support\Facades\Auth;
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Handle an incoming authentication request.
+     * @OA\Post(
+     *     path="/login",
+     *     tags={"auth"},
+     *     summary="Logs user into system",
+     *     description="Login api.",
+     *     operationId="loginUser",
+     *
+     *      @OA\Parameter(
+     *          name="X-XSRF-TOKEN",
+     *          in="header",
+     *
+     *          @OA\Schema(
+     *              type="string"
+     *          )
+     *      ),
+     *
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
+     *         description="The user name for login",
+     *
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *
+     *     @OA\Parameter(
+     *         name="password",
+     *         in="query",
+     *
+     *         @OA\Schema(
+     *             type="string",
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=204,
+     *         description="successful operation",
+     *
+     *         @OA\JsonContent(
+     *         ),
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Unprocessable Content",
+     *
+     *         @OA\JsonContent(
+     *              type="object",
+     *
+     *              @OA\Property(
+     *                  property="message",
+     *                  type="string",
+     *                  example="The email field is required. (and 1 more error)"
+     *              ),
+     *              @OA\Property(
+     *                  property="errors",
+     *                  type="object",
+     *                  example={
+     *                      "email": "The email field is required.",
+     *                      "password": "The password field is required.",
+     *                  },
+     *              ),
+     *         )
+     *     )
+     * )
      */
     public function store(LoginRequest $request): Response
     {

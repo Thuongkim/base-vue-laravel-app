@@ -2,203 +2,210 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ErrorResponseException;
+use App\Http\Requests\Users\UserUpdateRequest;
+use App\Http\Resources\UserCollection;
+use App\Http\Resources\UserResource;
+use App\Services\UserService;
+use Exception;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
-use Prettus\Validator\Contracts\ValidatorInterface;
-use Prettus\Validator\Exceptions\ValidatorException;
-use App\Http\Requests\UserCreateRequest;
-use App\Http\Requests\UserUpdateRequest;
-use App\Repositories\UserRepository;
-use App\Validators\UserValidator;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 /**
  * Class UsersController.
- *
- * @package namespace App\Http\Controllers;
  */
 class UsersController extends Controller
 {
-    /**
-     * @var UserRepository
-     */
-    protected $repository;
+    protected UserService $userService;
 
-    /**
-     * @var UserValidator
-     */
-    protected $validator;
-
-    /**
-     * UsersController constructor.
-     *
-     * @param UserRepository $repository
-     * @param UserValidator $validator
-     */
-    public function __construct(UserRepository $repository, UserValidator $validator)
+    public function __construct(UserService $userService)
     {
-        $this->repository = $repository;
-        $this->validator  = $validator;
+        $this->userService = $userService;
     }
 
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/users",
+     *     tags={"user"},
+     *     summary="Get list user",
+     *     description="Returns list user.",
+     *     operationId="getListUser",
      *
-     * @return \Illuminate\Http\Response
+     *     @OA\Parameter(ref="#/components/parameters/name_param"),
+     *     @OA\Parameter(ref="#/components/parameters/email_param"),
+     *     @OA\Parameter(ref="#/components/parameters/created_at_start_param"),
+     *     @OA\Parameter(ref="#/components/parameters/created_at_end_param"),
+     *     @OA\Parameter(ref="#/components/parameters/id_param"),
+     *     @OA\Parameter(ref="#/components/parameters/order_by_param"),
+     *     @OA\Parameter(ref="#/components/parameters/order_type_param"),
+     *     @OA\Parameter(ref="#/components/parameters/page_param"),
+     *
+     *     @OA\Response(
+     *         ref="#/components/responses/bad_request_response",
+     *         response=400
+     *     ),
+     *     @OA\Response(
+     *         ref="#/components/responses/unauthorized_response",
+     *         response=401
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         ref="#/components/responses/user_list_response",
+     *      ),
+     * )
+     *
+     * @throws ErrorResponseException
      */
-    public function index()
-    {
-        $this->repository->pushCriteria(app('Prettus\Repository\Criteria\RequestCriteria'));
-        $users = $this->repository->all();
-
-        if (request()->wantsJson()) {
-
-            return response()->json([
-                'data' => $users,
-            ]);
-        }
-
-        return view('users.index', compact('users'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  UserCreateRequest $request
-     *
-     * @return \Illuminate\Http\Response
-     *
-     * @throws \Prettus\Validator\Exceptions\ValidatorException
-     */
-    public function store(UserCreateRequest $request)
+    public function index(Request $request)
     {
         try {
+            $users = $this->userService->getUsers($request->all());
 
-            $this->validator->with($request->all())->passesOrFail(ValidatorInterface::RULE_CREATE);
-
-            $user = $this->repository->create($request->all());
-
-            $response = [
-                'message' => 'User created.',
-                'data'    => $user->toArray(),
-            ];
-
-            if ($request->wantsJson()) {
-
-                return response()->json($response);
-            }
-
-            return redirect()->back()->with('message', $response['message']);
-        } catch (ValidatorException $e) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'error'   => true,
-                    'message' => $e->getMessageBag()
-                ]);
-            }
-
-            return redirect()->back()->withErrors($e->getMessageBag())->withInput();
+            return new UserCollection($users);
+        } catch (Exception $e) {
+            throw new ErrorResponseException();
         }
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *     path="/api/users/{id}",
+     *    tags={"user"},
+     *     summary="Get user by user id",
+     *     operationId="getUserById",
+     *     description="Returns a single user.",
      *
-     * @param  int $id
+     *     @OA\Parameter(ref="#/components/parameters/id_path_param"),
      *
-     * @return \Illuminate\Http\Response
+     *     @OA\Response(
+     *         response=200,
+     *         ref="#/components/responses/user_detail_response",
+     *     ),
+     *     @OA\Response(
+     *         ref="#/components/responses/bad_request_response",
+     *         response=400
+     *     ),
+     *      @OA\Response(
+     *          ref="#/components/responses/not_found_response",
+     *          response=404
+     *      ),
+     *     @OA\Response(
+     *         ref="#/components/responses/unauthorized_response",
+     *         response=401
+     *     ),
+     * )
+     *
+     * @throws ErrorResponseException
      */
     public function show($id)
     {
-        $user = $this->repository->find($id);
+        try {
+            $user = $this->userService->getUser($id);
+            if (! $user) {
+                return $this->sendError(Response::$statusTexts[ResponseAlias::HTTP_NOT_FOUND], ResponseAlias::HTTP_NOT_FOUND);
+            }
 
-        if (request()->wantsJson()) {
-
-            return response()->json([
-                'data' => $user,
-            ]);
+            return new UserResource($user);
+        } catch (Exception $e) {
+            throw new ErrorResponseException();
         }
-
-        return view('users.show', compact('user'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * @OA\Put(
+     *     path="/api/users/{id}",
+     *    tags={"user"},
+     *     summary="Update user by user id",
      *
-     * @param  int $id
+     *     @OA\Parameter(ref="#/components/parameters/xsrf_token_param"),
+     *     @OA\Parameter(ref="#/components/parameters/id_path_param"),
+     *     @OA\Parameter(ref="#/components/parameters/name_required_param"),
+     *     @OA\Parameter(ref="#/components/parameters/email_required_param"),
      *
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $user = $this->repository->find($id);
-
-        return view('users.edit', compact('user'));
-    }
-
-    /**
-     * Update the specified resource in storage.
+     *     @OA\Response(
+     *         response=200,
+     *         ref="#/components/responses/success_response",
+     *     ),
+     *      @OA\Response(
+     *          ref="#/components/responses/user_edit_error_response",
+     *          response=422
+     *      ),
+     *     @OA\Response(
+     *         ref="#/components/responses/bad_request_response",
+     *         response=400
+     *     ),
+     *      @OA\Response(
+     *          ref="#/components/responses/not_found_response",
+     *          response=404
+     *      ),
+     *     @OA\Response(
+     *         ref="#/components/responses/unauthorized_response",
+     *         response=401
+     *     ),
+     * )
      *
-     * @param  UserUpdateRequest $request
-     * @param  string            $id
-     *
-     * @return Response
-     *
-     * @throws \Prettus\Validator\Exceptions\ValidatorException
+     * @throws ErrorResponseException
      */
     public function update(UserUpdateRequest $request, $id)
     {
         try {
-
-            $this->validator->with($request->all())->passesOrFail(ValidatorInterface::RULE_UPDATE);
-
-            $user = $this->repository->update($request->all(), $id);
-
-            $response = [
-                'message' => 'User updated.',
-                'data'    => $user->toArray(),
-            ];
-
-            if ($request->wantsJson()) {
-
-                return response()->json($response);
+            $user = $this->userService->getUser($id);
+            if (! $user) {
+                return $this->sendError(Response::$statusTexts[ResponseAlias::HTTP_NOT_FOUND], ResponseAlias::HTTP_NOT_FOUND);
+            }
+            $userResponse = $this->userService->update($id, $request->validated());
+            if (isset($userResponse['error'])) {
+                return $this->sendError($userResponse['error'], ResponseAlias::HTTP_BAD_REQUEST);
             }
 
-            return redirect()->back()->with('message', $response['message']);
-        } catch (ValidatorException $e) {
-
-            if ($request->wantsJson()) {
-
-                return response()->json([
-                    'error'   => true,
-                    'message' => $e->getMessageBag()
-                ]);
-            }
-
-            return redirect()->back()->withErrors($e->getMessageBag())->withInput();
+            return $this->sendResponse(null, ResponseAlias::HTTP_OK, Response::$statusTexts[ResponseAlias::HTTP_OK]);
+        } catch (Exception $e) {
+            throw new ErrorResponseException();
         }
     }
 
-
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *     path="/api/users/{id}",
+     *    tags={"user"},
+     *     summary="Delete user by user id",
      *
-     * @param  int $id
+     *     @OA\Parameter(ref="#/components/parameters/xsrf_token_param"),
+     *     @OA\Parameter(ref="#/components/parameters/id_path_param"),
      *
-     * @return \Illuminate\Http\Response
+     *     @OA\Response(
+     *         response=200,
+     *         ref="#/components/responses/success_response",
+     *     ),
+     *     @OA\Response(
+     *         ref="#/components/responses/bad_request_response",
+     *         response=400
+     *     ),
+     *      @OA\Response(
+     *          ref="#/components/responses/not_found_response",
+     *          response=404
+     *      ),
+     *     @OA\Response(
+     *         ref="#/components/responses/unauthorized_response",
+     *         response=401
+     *     ),
+     * )
+     *
+     * @throws ErrorResponseException
      */
     public function destroy($id)
     {
-        $deleted = $this->repository->delete($id);
+        try {
+            $user = $this->userService->getUser($id);
+            if (! $user) {
+                return $this->sendError(Response::$statusTexts[ResponseAlias::HTTP_NOT_FOUND], ResponseAlias::HTTP_NOT_FOUND);
+            }
+            $this->userService->delete($id);
 
-        if (request()->wantsJson()) {
-
-            return response()->json([
-                'message' => 'User deleted.',
-                'deleted' => $deleted,
-            ]);
+            return $this->sendResponse(null, ResponseAlias::HTTP_OK, Response::$statusTexts[ResponseAlias::HTTP_OK]);
+        } catch (Exception $e) {
+            throw new ErrorResponseException();
         }
-
-        return redirect()->back()->with('message', 'User deleted.');
     }
 }

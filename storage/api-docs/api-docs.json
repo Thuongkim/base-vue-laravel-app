@@ -1,0 +1,540 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Admin API",
+        "version": "0.1"
+    },
+    "paths": {
+        "/login": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logs user into system",
+                "description": "Login api.",
+                "operationId": "loginUser",
+                "parameters": [
+                    {
+                        "name": "X-XSRF-TOKEN",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "The user name for login",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The email field is required. (and 1 more error)"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "email": "The email field is required.",
+                                                "password": "The password field is required."
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get list user",
+                "description": "Returns list user.",
+                "operationId": "getListUser",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/name_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/email_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/created_at_start_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/created_at_end_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/id_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/order_by_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/order_type_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/page_param"
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "$ref": "#/components/responses/bad_request_response"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorized_response"
+                    },
+                    "200": {
+                        "$ref": "#/components/responses/user_list_response"
+                    }
+                }
+            }
+        },
+        "/api/users/{id}": {
+            "get": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user by user id",
+                "description": "Returns a single user.",
+                "operationId": "getUserById",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/id_path_param"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/user_detail_response"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/bad_request_response"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/not_found_response"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorized_response"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user by user id",
+                "operationId": "15f5757522724ebca9bac30479321b45",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/xsrf_token_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/id_path_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/name_required_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/email_required_param"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/success_response"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/user_edit_error_response"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/bad_request_response"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/not_found_response"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorized_response"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "user"
+                ],
+                "summary": "Delete user by user id",
+                "operationId": "98b6e09e3d231384330198299feb017f",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/xsrf_token_param"
+                    },
+                    {
+                        "$ref": "#/components/parameters/id_path_param"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/success_response"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/bad_request_response"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/not_found_response"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/unauthorized_response"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ErrorResponseException": {
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "Bad Request"
+                    }
+                },
+                "type": "object"
+            },
+            "UserCollection": {
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/User"
+                        }
+                    },
+                    "links": {
+                        "type": "object",
+                        "example": {
+                            "first": "http://127.0.0.1:8000/api/users?page=1",
+                            "last": "http://127.0.0.1:8000/api/users?page=1",
+                            "prev": null,
+                            "next": null
+                        }
+                    },
+                    "meta": {
+                        "properties": {
+                            "current_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "from": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "last_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "links": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "example": {
+                                        "url": "http://127.0.0.1:8000/api/users?page=1",
+                                        "label": "http://127.0.0.1:8000/api/users?page=1",
+                                        "active": null
+                                    }
+                                }
+                            },
+                            "path": {
+                                "type": "string",
+                                "example": "http://127.0.0.1:8000/api/users"
+                            },
+                            "per_page": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "to": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "total": {
+                                "type": "integer",
+                                "example": 10
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 36
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "ffdfd"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "example9898@gmail.com"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "responses": {
+            "bad_request_response": {
+                "description": "Bad Request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponseException"
+                        }
+                    }
+                }
+            },
+            "unauthorized_response": {
+                "description": "Unauthorized",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Unauthenticated"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "success_response": {
+                "description": "successful operation",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "OK"
+                                },
+                                "data": {
+                                    "example": "null"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "not_found_response": {
+                "description": "Not Found Request",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "error": {
+                                    "type": "string",
+                                    "example": "Not Found"
+                                },
+                                "data": {
+                                    "example": null
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "user_list_response": {
+                "description": "successful operation",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/UserCollection"
+                        }
+                    }
+                }
+            },
+            "user_detail_response": {
+                "description": "successful operation",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "data": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "user_edit_error_response": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "example": "The given data was invalid."
+                                },
+                                "errors": {
+                                    "properties": {
+                                        "name": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "The name field is required."
+                                            }
+                                        },
+                                        "email": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "The email field is required."
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "xsrf_token_param": {
+                "name": "X-XSRF-TOKEN",
+                "in": "header",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "name_param": {
+                "name": "name",
+                "in": "query",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "name_required_param": {
+                "name": "name",
+                "in": "query",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "email_required_param": {
+                "name": "email",
+                "in": "query",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "email_param": {
+                "name": "email",
+                "in": "query",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "order_by_param": {
+                "name": "order_by",
+                "in": "query",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "order_type_param": {
+                "name": "order_type",
+                "in": "query",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "page_param": {
+                "name": "page",
+                "in": "query",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "id_param": {
+                "name": "id",
+                "in": "query",
+                "schema": {
+                    "type": "integer"
+                }
+            },
+            "created_at_start_param": {
+                "name": "created_at_start",
+                "in": "query",
+                "schema": {
+                    "type": "date"
+                }
+            },
+            "created_at_end_param": {
+                "name": "created_at_end",
+                "in": "query",
+                "schema": {
+                    "type": "date"
+                }
+            },
+            "id_path_param": {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "auth",
+            "description": "auth"
+        },
+        {
+            "name": "user",
+            "description": "user"
+        }
+    ]
+}

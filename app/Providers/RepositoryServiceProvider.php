@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\UserRepository;
+use App\Repositories\UserRepositoryEloquent;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
+    protected $repositories = [
+        UserRepository::class => UserRepositoryEloquent::class,
+    ];
+
     /**
      * Register services.
      */
@@ -19,7 +25,9 @@ class RepositoryServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->app->bind(\App\Repositories\UserRepository::class, \App\Repositories\UserRepositoryEloquent::class);
+        foreach ($this->repositories as $contract => $repository) {
+            $this->app->singleton($contract, $repository);
+        }
         //:end-bindings:
     }
 }
